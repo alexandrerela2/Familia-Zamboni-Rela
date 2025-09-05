@@ -3,89 +3,57 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Finanças — v16 (Auth Gate)</title>
+<title>Finanças — v17b (Quick Join)</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{
-  --bg:#0f172a; --panel:#111827; --card:#0b1220; --text:#e5e7eb; --muted:#9ca3af;
-  --primary:#10b981; --accent:#22d3ee; --danger:#ef4444; --sidebar:#0b1220; --shadow: 0 10px 18px rgba(0,0,0,.35);
-}
-*{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif}
-a{color:var(--accent);text-decoration:none}
-small.muted{color:var(--muted)}
-/* ===== Auth Gate ===== */
+:root{--bg:#0f172a;--panel:#111827;--card:#0b1220;--text:#e5e7eb;--muted:#9ca3af;--primary:#10b981;--accent:#22d3ee;--danger:#ef4444;--sidebar:#0b1220;--shadow:0 10px 18px rgba(0,0,0,.35)}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none} small.muted{color:var(--muted)}
+/* Gate */
 #gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at top, rgba(34,211,238,.08), transparent 60%), radial-gradient(ellipse at bottom, rgba(16,185,129,.08), transparent 60%), #0b1220;z-index:50}
-.gcard{width:min(920px,92vw);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.gcard{width:min(980px,92vw);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
 .ggrid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
 .gleft{border-right:1px dashed rgba(255,255,255,.08);padding-right:14px}
-h1{margin:.2rem 0 .4rem 0}
-h2{margin:.2rem 0 .6rem 0;font-size:16px}
+h1{margin:.2rem 0 .4rem 0} h2{margin:.2rem 0 .6rem 0;font-size:16px}
 label{font-size:12px;color:var(--muted)}
 input,button,select,textarea{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--text);padding:10px;border-radius:10px;width:100%}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{cursor:pointer}
-.btn.primary{background:var(--primary);border-color:var(--primary);color:#001b12;font-weight:600}
+.btn{cursor:pointer} .btn.primary{background:var(--primary);border-color:var(--primary);color:#001b12;font-weight:600}
 .stack{display:flex;flex-direction:column;gap:10px}
 .badge{padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.18);color:var(--muted);font-size:12px;display:inline-flex;gap:6px;align-items:center}
-.ok{color:#22c55e} .warn{color:#f59e0b} .err{color:#ef4444}
-/* ===== App ===== */
-.wrap{display:none;min-height:100vh}
-aside{width:260px;background:var(--sidebar);padding:18px;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.06)}
+/* App */
+.wrap{display:none;min-height:100vh} aside{width:260px;background:var(--sidebar);padding:18px;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.06)}
 aside .logo{font-weight:700;letter-spacing:.5px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
 .nav a{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--text);opacity:.85}
-.nav a.active,.nav a:hover{background:rgba(255,255,255,.06);opacity:1}
-.nav svg{width:18px;height:18px;opacity:.9}
-main{flex:1;padding:22px}
-.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.nav a.active,.nav a:hover{background:rgba(255,255,255,.06);opacity:1} .nav svg{width:18px;height:18px;opacity:.9}
+main{flex:1;padding:22px} .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:8px 0 6px}
 .kpi{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.25);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;min-height:78px}
 .kpi .icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center}
-.kpi .val{font-weight:700;font-size:20px}
-.kpi .label{color:var(--muted);font-size:12px}
-.table{width:100%;border-collapse:collapse}
-.table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;font-size:13px}
-.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.kpi .val{font-weight:700;font-size:20px} .kpi .label{color:var(--muted);font-size:12px}
+.table{width:100%;border-collapse:collapse} .table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;font-size:13px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap} .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px} .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .cal .cell{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;min-height:66px;padding:6px;position:relative}
 .cal .day{position:absolute;top:6px;right:8px;color:var(--muted);font-size:11px}
-.tag{display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px}
-.tag.exp{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.35)}
-.tag.inc{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
-aside.compact{width:76px}
-aside.compact .txt{display:none}
-.topbar{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.topbar .spacer{flex:1}
+.tag{display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px} .tag.exp{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.35)} .tag.inc{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+aside.compact{width:76px} aside.compact .txt{display:none} .topbar{display:flex;align-items:center;gap:12px;margin-bottom:10px} .topbar .spacer{flex:1}
 footer{margin-top:18px;text-align:right;color:var(--muted);font-size:12px}
+/* QuickJoin modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:40}
+.modal .box{width:min(520px,92vw);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
 </style>
 </head>
 <body>
-
-<!-- ===== AUTH GATE ===== -->
 <div id="gate">
   <div class="gcard">
     <div class="ggrid">
       <div class="gleft">
-        <h1>Finanças • <small class="muted">v16</small></h1>
-        <p class="muted">Acesso restrito. Entre com e-mail e senha para visualizar o app.</p>
-        <div id="stepCfg" class="stack" style="display:none">
-          <h2>Conectar à Nuvem (Supabase)</h2>
-          <div class="row">
-            <div class="stack"><label>Supabase URL</label><input id="gSpUrl" placeholder="https://xxxxx.supabase.co"/></div>
-            <div class="stack"><label>Supabase anon key</label><input id="gSpKey" placeholder="eyJ..."/></div>
-          </div>
-          <div class="row">
-            <button class="btn" id="gBtnTest">Testar</button>
-            <button class="btn primary" id="gBtnSave">Salvar</button>
-          </div>
-          <div><span class="badge">Status: <span id="gStatus">offline</span></span></div>
-        </div>
-
-        <div id="stepAuth" class="stack" style="display:none">
+        <h1>Finanças • <small class="muted">v17b</small></h1>
+        <p class="muted">Acesso restrito. Entre com e-mail e senha.</p>
+        <div id="stepAuth" class="stack">
           <h2>Entrar</h2>
           <div class="row">
             <div class="stack"><label>E-mail</label><input id="gEmail" type="email"/></div>
@@ -98,49 +66,47 @@ footer{margin-top:18px;text-align:right;color:var(--muted);font-size:12px}
           </div>
           <div><span class="badge">Cloud: <span id="gCloud">conectando...</span></span></div>
         </div>
-
-        <div id="stepRecovery" class="stack" style="display:none">
-          <h2>Definir nova senha</h2>
-          <div class="row">
-            <div class="stack"><label>Nova senha</label><input id="gNewPass" type="password"/></div>
-            <div class="stack"><label>Confirmar</label><input id="gNewPass2" type="password"/></div>
-          </div>
-          <div><button class="btn primary" id="gSetPass">Salvar nova senha</button></div>
-        </div>
       </div>
-
       <div>
-        <h2>Status & ajuda</h2>
+        <h2>Ajuda</h2>
         <div class="stack">
           <div class="badge"><span>🔐</span> Sessão: <span id="gSess" class="warn">não autenticado</span></div>
           <div class="badge"><span>🌩️</span> Household: <code id="gHH">—</code></div>
-          <small class="muted">Dica: em <strong>Supabase → Authentication → URL Configuration</strong>, adicione a URL <code id="siteUrl">https://seu-site.vercel.app</code> em “Site URL/Redirects”.</small>
-          <small class="muted">Se o e-mail de confirmação estiver ativo, o link irá voltar para esta tela e liberar o login.</small>
+          <small class="muted">Após login, abriremos automaticamente a tela para informar <b>ID</b> e <b>passcode</b> do household.</small>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== APP ===== -->
+<!-- QuickJoin modal -->
+<div id="joinModal" class="modal">
+  <div class="box">
+    <h2>Conectar ao Household</h2>
+    <p class="muted">Informe o <b>ID</b> e o <b>passcode</b> do espaço da família. <br>Se você ainda não tem, peça para o dono compartilhar.</p>
+    <div class="row">
+      <div class="stack"><label>Household ID</label><input id="mJoinId" placeholder="00000000-0000-0000-0000-000000000000"></div>
+      <div class="stack"><label>Passcode</label><input id="mJoinPass" placeholder="código do espaço"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn primary" id="mBtnJoin">Entrar</button>
+      <button class="btn" id="mBtnSkip">Depois</button>
+    </div>
+  </div>
+</div>
+
 <div class="wrap" id="appWrap">
   <div style="display:flex">
     <aside id="sb">
-      <div class="logo">
-        <button id="btnCollapse" title="Recolher menu" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <span>Finanças</span>
-      </div>
+      <div class="logo"><button id="btnCollapse" title="Recolher menu" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 18l-6-6 6-6"/></svg></button><span>Finanças</span></div>
       <nav class="nav">
         <a href="#dash" data-nav="dash" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h18M3 6h18M3 18h18"/></svg><span class="txt">Dashboard</span></a>
         <a href="#lancar" data-nav="lancar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg><span class="txt">Lançar</span></a>
         <a href="#demo" data-nav="demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06"/></svg><span class="txt">Demonstrativo</span></a>
         <a href="#parc" data-nav="parc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg><span class="txt">Parcelados</span></a>
-        <a href="#cfg" data-nav="cfg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 9 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0A1.65 1.65 0 0 0 21 11h.09a2 2 0 1 1 0 4H21a1.65 1.65 0 0 0-1.51 1Z"/></svg><span class="txt">Config</span></a>
+        <a href="#cfg" data-nav="cfg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 9 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82v0A1.65 1.65 0 0 0 21 11h.09a2 2 0 1 1 0 4H21a1.65 1.65 0 0 0-1.51 1Z"/></svg><span class="txt">Config</span></a>
       </nav>
     </aside>
-
     <main>
       <div class="topbar">
         <div class="toolbar">
@@ -148,8 +114,7 @@ footer{margin-top:18px;text-align:right;color:var(--muted);font-size:12px}
           <span class="pill mono"><span class="muted">Cloud:</span> <span id="pillCloudTxt">offline</span></span>
           <span class="pill mono" id="pillUser">usuário: —</span>
           <button class="btn" id="btnLogout">Sair</button>
-        </div>
-        <div class="spacer"></div>
+        </div><div class="spacer"></div>
       </div>
 
       <section id="dash" class="page">
@@ -159,25 +124,15 @@ footer{margin-top:18px;text-align:right;color:var(--muted);font-size:12px}
           <div class="kpi"><div class="icon">📈</div><div><div class="label">Receitas</div><div class="val" id="kRec">R$ 0,00</div></div></div>
           <div class="kpi"><div class="icon">🏦</div><div><div class="label">Parcelados (mês)</div><div class="val" id="kParc">R$ 0,00</div></div></div>
         </div>
-
         <div class="row2">
-          <div class="card">
-            <h3>Resumo do mês</h3>
-            <table class="table" id="tblResumo"></table>
-          </div>
-          <div class="card">
-            <h3>Calendário</h3>
-            <div class="cal" id="cal"></div>
-          </div>
+          <div class="card"><h3>Resumo do mês</h3><table class="table" id="tblResumo"></table></div>
+          <div class="card"><h3>Calendário</h3><div class="cal" id="cal"></div></div>
         </div>
-
         <div class="card" style="margin-top:12px">
-          <h3>Distribuição das Despesas</h3>
-          <canvas id="pie" height="160"></canvas>
-          <h3 style="margin-top:12px">Evolução diária • Despesas vs Receitas</h3>
-          <canvas id="line" height="160"></canvas>
+          <h3>Distribuição das Despesas</h3><canvas id="pie" height="160"></canvas>
+          <h3 style="margin-top:12px">Evolução diária • Despesas vs Receitas</h3><canvas id="line" height="160"></canvas>
         </div>
-        <footer>v16</footer>
+        <footer>v17b</footer>
       </section>
 
       <section id="lancar" class="page" style="display:none">
@@ -201,11 +156,7 @@ footer{margin-top:18px;text-align:right;color:var(--muted);font-size:12px}
             <small class="muted">Os itens entram no mês selecionado acima.</small>
           </div>
         </div>
-
-        <div class="card">
-          <h3>Itens do mês</h3>
-          <table class="table" id="tblItens"></table>
-        </div>
+        <div class="card"><h3>Itens do mês</h3><table class="table" id="tblItens"></table></div>
       </section>
 
       <section id="demo" class="page" style="display:none">
@@ -236,10 +187,7 @@ footer{margin-top:18px;text-align:right;color:var(--muted);font-size:12px}
             <div style="display:flex;align-items:end"><button class="btn primary" id="btnPcAdd">Salvar contrato</button></div>
           </div>
         </div>
-        <div class="card">
-          <h3>Contratos</h3>
-          <table class="table" id="tblContratos"></table>
-        </div>
+        <div class="card"><h3>Contratos</h3><table class="table" id="tblContratos"></table></div>
       </section>
 
       <section id="cfg" class="page" style="display:none">
@@ -254,208 +202,167 @@ footer{margin-top:18px;text-align:right;color:var(--muted);font-size:12px}
             <h3>Categorias & Subcategorias</h3>
             <small class="muted">Edite a lista. Cada linha é uma categoria. Subcategorias separadas por vírgula.</small>
             <div class="row2" style="margin-top:8px">
-              <div>
-                <label>Despesas (usado em Fixos e Variáveis)</label><br/>
-                <textarea id="taDespesas" rows="8" style="width:100%"></textarea>
-              </div>
-              <div>
-                <label>Subcategorias de Despesas</label><br/>
-                <textarea id="taSubDespesas" rows="8" style="width:100%"></textarea>
-              </div>
+              <div><label>Despesas</label><br/><textarea id="taDespesas" rows="8" style="width:100%"></textarea></div>
+              <div><label>Subcategorias de Despesas</label><br/><textarea id="taSubDespesas" rows="8" style="width:100%"></textarea></div>
             </div>
             <div class="row2">
-              <div>
-                <label>Investimentos</label><br/>
-                <textarea id="taInv" rows="4" style="width:100%"></textarea>
-              </div>
-              <div>
-                <label>Receitas</label><br/>
-                <textarea id="taRec" rows="4" style="width:100%"></textarea>
-              </div>
+              <div><label>Investimentos</label><br/><textarea id="taInv" rows="4" style="width:100%"></textarea></div>
+              <div><label>Receitas</label><br/><textarea id="taRec" rows="4" style="width:100%"></textarea></div>
             </div>
-            <div class="toolbar">
-              <button class="btn primary" id="btnSaveCfg">Salvar categorias</button>
-              <span class="badge">As categorias ficam salvas localmente e, se logado no household, também na nuvem.</span>
-            </div>
+            <div class="toolbar"><button class="btn primary" id="btnSaveCfg">Salvar categorias</button><span class="badge">Sincroniza local e nuvem.</span></div>
           </div>
         </div>
 
         <div id="tConta" class="tabpane" style="display:none">
-          <div class="card">
-            <h3>Conta</h3>
-            <div class="toolbar">
-              <span class="badge">Usuário: <span id="accEmail">—</span></span>
-              <button class="btn" id="accLogout">Sair</button>
-            </div>
-          </div>
+          <div class="card"><h3>Conta</h3><div class="toolbar"><span class="badge">Usuário: <span id="accEmail">—</span></span><button class="btn" id="accLogout">Sair</button></div></div>
         </div>
 
         <div id="tHH" class="tabpane" style="display:none">
           <div class="card">
-            <h3>Espaço da família (Household)</h3>
+            <h3>Entrar no Household com código</h3>
             <div class="toolbar">
               <input id="joinId" placeholder="ID do Household" style="min-width:260px"/>
               <input id="joinPass" placeholder="Passcode"/>
               <button class="btn primary" id="btnJoinHH">Entrar com código</button>
-              <span class="pill"><span class="muted">Atual:</span> <code id="hhCurrent">—</code></span>
+              <span class="badge">Acesso imediato quando o código confere.</span>
             </div>
           </div>
         </div>
       </section>
-
     </main>
   </div>
 </div>
 
 <script>
-/* ===== utils ===== */
+/* Utils */
 const brl = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 
-/* ===== state ===== */
-let app = { atual: '', cfg:{ categorias:{despesas:[],investimentos:[],receitas:[]}, subcats:{despesas:[],investimentos:[],receitas:[]} }, meses:{}, diario:{}, parcelados:[] };
+/* State */
+let app={ atual:'', cfg:{ categorias:{despesas:[],investimentos:[],receitas:[]}, subcats:{despesas:[],investimentos:[],receitas:[]} }, meses:{}, diario:{}, parcelados:[] };
 function saveLocal(){ localStorage.setItem('fin_app', JSON.stringify(app)); }
-function loadLocal(){ try{ const j = JSON.parse(localStorage.getItem('fin_app')||'{}'); if(j && j.cfg) app = Object.assign(app, j); }catch(e){} }
-loadLocal();
+function loadLocal(){ try{ const j=JSON.parse(localStorage.getItem('fin_app')||'{}'); if(j && j.cfg) app=Object.assign(app,j); }catch(e){} } loadLocal();
 
-/* ===== Auth Gate logic ===== */
-let sp = { url:'', key:'', client:null, session:null, household_id:null };
+/* Supabase */
+let sp={ url:'', key:'', client:null, session:null, household_id:null };
 function spSaveConfig(){ localStorage.setItem('sp_cfg', JSON.stringify({url:sp.url, key:sp.key, household_id:sp.household_id, hh:sp.household_id})); }
-function spLoadConfig(){ try{ const j = JSON.parse(localStorage.getItem('sp_cfg')||'{}'); sp.url=j.url||''; sp.key=j.key||''; sp.household_id=j.hh||j.household_id||null; }catch(e){} }
-function setGateStatus(txt){ document.getElementById('gStatus').textContent = txt; }
-function setCloudPill(txt){ document.getElementById('pillCloudTxt').textContent = txt; document.getElementById('gCloud').textContent = txt; }
-function showStep(id){ ['stepCfg','stepAuth','stepRecovery'].forEach(s=>document.getElementById(s).style.display='none'); document.getElementById(id).style.display='block'; }
+function spLoadConfig(){ try{ const j=JSON.parse(localStorage.getItem('sp_cfg')||'{}'); sp.url=j.url||''; sp.key=j.key||''; sp.household_id=j.hh||j.household_id||null; }catch(e){} }
+function setCloudPill(t){ const a=document.getElementById('pillCloudTxt'); const b=document.getElementById('gCloud'); if(a) a.textContent=t; if(b) b.textContent=t; }
 function showGate(){ document.getElementById('gate').style.display='flex'; document.getElementById('appWrap').style.display='none'; }
 function showApp(){ document.getElementById('gate').style.display='none'; document.getElementById('appWrap').style.display='block'; }
+function showJoinModal(show=true){ document.getElementById('joinModal').style.display = show?'flex':'none'; }
 
 async function spInit(){
   spLoadConfig();
-  // prefill defaults (se não configurado ainda)
   if(!sp.url){ sp.url='https://uvygqjwtxyrknkfoozwx.supabase.co'; }
   if(!sp.key){ sp.key='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2eWdxand0eHlya25rZm9vend4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQwMzMsImV4cCI6MjA3MjY1MDAzM30.QnkZpgrVpfiEJaRcMuBVcJ9iasCPl0GLU99WSVl3q34'; }
   sp.client = window.supabase.createClient(sp.url, sp.key);
-  const { data } = await sp.client.auth.getSession();
-  sp.session = data?.session||null;
+  const { data } = await sp.client.auth.getSession(); sp.session=data?.session||null;
   setCloudPill(sp.session ? (sp.household_id?'online ✓':'logado (sem household)') : 'conectado (sem login)');
-  // Roteia step do Gate
-  document.getElementById('gSpUrl').value = sp.url;
-  document.getElementById('gSpKey').value = sp.key;
-  document.getElementById('siteUrl').textContent = location.origin;
-  if(window.location.hash.includes('type=recovery') || window.location.href.includes('access_token')){
-    showGate(); showStep('stepRecovery'); return;
-  }
-  if(!sp.session){ showGate(); showStep('stepAuth'); return; }
-  // ok logado
-  showApp();
+  if(!sp.session){ showGate(); return; }
+  // logado
   document.getElementById('pillUser').textContent = 'usuário: '+(sp.session.user.email||'—');
-  document.getElementById('accEmail').textContent = sp.session.user.email||'—';
-  document.getElementById('hhCurrent').textContent = sp.household_id||'—';
-  // render app
+  document.getElementById('accEmail') && (document.getElementById('accEmail').textContent = sp.session.user.email||'—');
+  showApp();
+  await ensureHouseholdAfterLogin();
   initAppUI();
 }
-/* Gate buttons */
-document.getElementById('gBtnSave').onclick = async ()=>{
-  sp.url = document.getElementById('gSpUrl').value.trim();
-  sp.key = document.getElementById('gSpKey').value.trim();
-  spSaveConfig(); setGateStatus('salvo'); await spInit();
-};
-document.getElementById('gBtnTest').onclick = async ()=>{
+
+async function ensureHouseholdAfterLogin(){
+  // Se já temos household_id, validamos que somos membros; se não, mostramos modal
+  if(!sp.household_id){ showJoinModal(true); return; }
   try{
-    const test = window.supabase.createClient(document.getElementById('gSpUrl').value.trim(), document.getElementById('gSpKey').value.trim());
-    const { error } = await test.from('households').select('id').limit(1);
-    setGateStatus(error ? 'conectado (RLS ativo)' : 'online ✓');
-  }catch(e){ setGateStatus('offline'); alert('Erro ao testar: '+e.message); }
-};
-document.getElementById('gLogin').onclick = async ()=>{
+    const { data, error } = await sp.client.rpc('list_members',{ p_household: sp.household_id });
+    if(error || !(data||[]).some(r=>r.user_id===sp.session.user.id)){ showJoinModal(true); }
+  }catch(e){ showJoinModal(true); }
+}
+
+/* Gate actions */
+gLogin.onclick = async ()=>{
   try{
-    const { data, error } = await sp.client.auth.signInWithPassword({ email: document.getElementById('gEmail').value.trim(), password: document.getElementById('gPass').value });
+    const { data, error } = await sp.client.auth.signInWithPassword({ email: gEmail.value.trim(), password: gPass.value });
     if(error) throw error;
-    sp.session = data.session; setCloudPill(sp.household_id?'online ✓':'logado (sem household)');
-    showApp(); document.getElementById('pillUser').textContent = 'usuário: '+(sp.session.user.email||'—');
+    sp.session=data.session; setCloudPill(sp.household_id?'online ✓':'logado (sem household)');
+    showApp(); document.getElementById('pillUser').textContent='usuário: '+(sp.session.user.email||'—');
+    await ensureHouseholdAfterLogin();
     initAppUI();
   }catch(e){ alert('Erro ao entrar: '+e.message); }
 };
-document.getElementById('gSignup').onclick = async ()=>{
+gSignup.onclick = async ()=>{
+  try{ const { error } = await sp.client.auth.signUp({ email: gEmail.value.trim(), password: gPass.value }); if(error) throw error; alert('Conta criada! Faça login e informe o ID + passcode do household.'); }
+  catch(e){ alert('Erro ao criar conta: '+e.message); }
+};
+gReset.onclick = async ()=>{
+  try{ if(!gEmail.value.trim()) return alert('Informe o e-mail.');
+    await sp.client.auth.resetPasswordForEmail(gEmail.value.trim(), { redirectTo: location.origin+'/#type=recovery' });
+    alert('Se o e-mail existir, você receberá um link para redefinir.');
+  }catch(e){ alert('Erro: '+e.message); }
+};
+
+/* QuickJoin modal actions */
+mBtnJoin.onclick = async ()=>{
+  const id = document.getElementById('mJoinId').value.trim();
+  const pass = document.getElementById('mJoinPass').value.trim();
+  if(!id || !pass) return alert('Preencha ID e passcode.');
   try{
-    const { data, error } = await sp.client.auth.signUp({ email: document.getElementById('gEmail').value.trim(), password: document.getElementById('gPass').value });
+    const { data, error } = await sp.client.rpc('request_join_household',{ p_household:id, p_passcode:pass });
     if(error) throw error;
-    alert('Conta criada! Verifique e-mail se a confirmação estiver ativa.');
-  }catch(e){ alert('Erro ao criar conta: '+e.message); }
-};
-document.getElementById('gReset').onclick = async ()=>{
-  try{
-    const email = document.getElementById('gEmail').value.trim();
-    if(!email){ alert('Informe o e-mail para recuperar.'); return; }
-    await sp.client.auth.resetPasswordForEmail(email, { redirectTo: location.origin+'/#type=recovery' });
-    alert('Se o e-mail existir, você receberá um link para redefinir a senha.');
+    sp.household_id = id; spSaveConfig(); showJoinModal(false);
+    alert('Conectado ao household!');
   }catch(e){ alert('Erro: '+e.message); }
 };
-document.getElementById('gSetPass').onclick = async ()=>{
-  try{
-    const p1 = document.getElementById('gNewPass').value, p2 = document.getElementById('gNewPass2').value;
-    if(!p1 || p1!==p2){ alert('Senhas não conferem.'); return; }
-    const { data, error } = await sp.client.auth.updateUser({ password: p1 });
-    if(error) throw error; alert('Senha alterada! Faça login.'); showStep('stepAuth');
-  }catch(e){ alert('Erro: '+e.message); }
-};
+mBtnSkip.onclick = ()=> showJoinModal(false);
 
-/* ===== App UI behavior (só após login) ===== */
+/* RPC helpers (para outras telas) */
+async function rpcListMembers(){ const { data, error } = await sp.client.rpc('list_members',{ p_household:sp.household_id }); if(error) throw error; return data; }
+
+/* App UI */
 function initAppUI(){
-  // sidebar
-  const sb = document.getElementById('sb');
-  document.getElementById('btnCollapse').onclick = ()=>{ sb.classList.toggle('compact'); localStorage.setItem('sb_compact', sb.classList.contains('compact')?'1':'0'); };
-  if(localStorage.getItem('sb_compact')==='1') sb.classList.add('compact');
+  // Nav
   document.querySelectorAll('.nav a').forEach(a=>a.onclick=(e)=>{ e.preventDefault(); document.querySelectorAll('.nav a').forEach(n=>n.classList.remove('active')); a.classList.add('active'); document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.querySelector(a.getAttribute('href')).style.display='block'; });
-  // mês
-  const sel=document.getElementById('selMes'); sel.innerHTML=''; const base=new Date(); base.setDate(1);
-  for(let i=-5;i<=7;i++){ const dt=new Date(base.getFullYear(), base.getMonth()+i, 1); const v=dt.toISOString().slice(0,7); const o=document.createElement('option'); o.value=v;o.textContent=v;if(i===0)o.selected=true; sel.appendChild(o); }
-  app.atual = sel.value;
-  sel.onchange = ()=>{ app.atual=sel.value; saveLocal(); renderLista(); renderDashboard(); renderDemo(); renderCharts(); };
-  // categorias default
-  if(!app.cfg.categorias.despesas.length){ app.cfg={ categorias:{ despesas:["Alimentação","Moradia","Transporte","Saúde","Educação","Lazer","Contas","Outros"], investimentos:["Reserva Emergência","Aportes","Poupança"], receitas:["Salário","Pró-labore","Bicos","Outras"] }, subcats:{ despesas:["Supermercado","Restaurante","Delivery","Aluguel","Condomínio","Luz","Água","Internet","Combustível","Manutenção","Farmácia","Plano de Saúde"], investimentos:["Tesouro","CDB","Fundos","Ações"], receitas:["Principal","13º","Bônus"] } }; }
-  // forms
+  const sb=document.getElementById('sb'); btnCollapse.onclick=()=>{ sb.classList.toggle('compact'); localStorage.setItem('sb_compact', sb.classList.contains('compact')?'1':'0'); }; if(localStorage.getItem('sb_compact')==='1') sb.classList.add('compact');
+  // Mês
+  const sel=selMes; sel.innerHTML=''; const base=new Date(); base.setDate(1);
+  for(let i=-5;i<=7;i++){ const dt=new Date(base.getFullYear(),base.getMonth()+i,1); const v=dt.toISOString().slice(0,7); const o=document.createElement('option'); o.value=v;o.textContent=v;if(i===0)o.selected=true; sel.appendChild(o); }
+  app.atual=sel.value; sel.onchange=()=>{ app.atual=sel.value; saveLocal(); renderAll(); };
+
+  // Categorias default
+  if(!app.cfg.categorias.despesas.length){
+    app.cfg={ categorias:{ despesas:["Alimentação","Moradia","Transporte","Saúde","Educação","Lazer","Contas","Outros"], investimentos:["Reserva Emergência","Aportes","Poupança"], receitas:["Salário","Pró-labore","Bicos","Outras"] }, subcats:{ despesas:["Supermercado","Restaurante","Delivery","Aluguel","Condomínio","Luz","Água","Internet","Combustível","Manutenção","Farmácia","Plano de Saúde"], investimentos:["Tesouro","CDB","Fundos","Ações"], receitas:["Principal","13º","Bônus"] } };
+  }
+
+  // Forms
   function renderForm(){
-    const t=document.getElementById('tipSel').value;
-    const cat = t==='invest'? app.cfg.categorias.investimentos : (t==='receitas'? app.cfg.categorias.receitas : app.cfg.categorias.despesas);
-    document.getElementById('catSel').innerHTML = cat.map(x=>`<option>${x}</option>`).join('');
+    const t=tipSel.value; const cat = t==='invest'? app.cfg.categorias.investimentos : (t==='receitas'? app.cfg.categorias.receitas : app.cfg.categorias.despesas);
+    catSel.innerHTML = cat.map(x=>`<option>${x}</option>`).join('');
     const subs = t==='invest'? (app.cfg.subcats.investimentos||[]) : (t==='receitas'? (app.cfg.subcats.receitas||[]) : app.cfg.subcats.despesas);
-    document.getElementById('subSel').innerHTML = subs.map(x=>`<option>${x}</option>`).join('');
+    subSel.innerHTML = subs.map(x=>`<option>${x}</option>`).join('');
   }
-  document.getElementById('tipSel').onchange = renderForm; renderForm();
+  tipSel.onchange=renderForm; renderForm();
 
-  // lista mês
-  function renderLista(){
-    const list = app.meses[app.atual]||[];
-    const el = document.getElementById('tblItens');
-    const rows = list.map((x,i)=>`<tr><td><span class="badge">${x.tipo}</span></td><td>${x.categoria||''}</td><td>${x.subcategoria||''}</td><td>${brl(x.valor)}</td><td><button class="btn" data-del="${i}">Excluir</button></td></tr>`).join('');
-    el.innerHTML = `<tr><th>Tipo</th><th>Categoria</th><th>Subcategoria</th><th>Valor</th><th></th></tr>${rows}`;
-    el.querySelectorAll('button[data-del]').forEach(b=>b.onclick=()=>{ const idx=+b.dataset.del; (app.meses[app.atual]||[]).splice(idx,1); saveLocal(); renderLista(); renderDashboard(); renderDemo(); renderCharts(); });
-  }
-  window.renderLista = renderLista;
-
-  // add
-  document.getElementById('btnAdd').onclick = async ()=>{
-    const t=document.getElementById('tipSel').value, c=document.getElementById('catSel').value, s=document.getElementById('subSel').value, v=parseFloat(document.getElementById('valInp').value||'0');
-    if(!v||v<=0){ alert('Informe um valor.'); return; }
-    app.meses[app.atual]=app.meses[app.atual]||[]; app.meses[app.atual].push({tipo:t,categoria:c,subcategoria:s,valor:v}); saveLocal(); renderLista(); renderDashboard(); renderDemo(); renderCharts();
-    if(sp.client && sp.session && sp.household_id){ await sp.client.from('transactions').insert({ household_id:sp.household_id, ref_month:app.atual, tipo:t, categoria:c, subcategoria:s, valor:v }); }
+  // Add item
+  btnAdd.onclick = async ()=>{
+    if(!sp.household_id){ alert('Entre no household (após login).'); showJoinModal(true); return; }
+    const v=parseFloat(valInp.value||'0'); if(!v||v<=0){ alert('Informe um valor.'); return; }
+    const t=tipSel.value,c=catSel.value,s=subSel.value;
+    app.meses[app.atual]=app.meses[app.atual]||[]; app.meses[app.atual].push({tipo:t,categoria:c,subcategoria:s,valor:v}); saveLocal(); renderAll();
+    await sp.client.from('transactions').insert({ household_id:sp.household_id, ref_month:app.atual, tipo:t, categoria:c, subcategoria:s, valor:v });
   };
 
-  // dashboard
+  // Conta / logout
+  btnLogout.onclick = async ()=>{ await sp.client.auth.signOut(); sp.session=null; showGate(); };
+
+  // Renders
   function calcResumo(){
     const arr=app.meses[app.atual]||[]; let fix=0,varv=0,inv=0,rec=0;
     arr.forEach(x=>{ if(x.tipo==='fixas') fix+=x.valor; else if(x.tipo==='variaveis') varv+=x.valor; else if(x.tipo==='invest') inv+=x.valor; else if(x.tipo==='receitas') rec+=x.valor; });
     let parcMes=0; const m=app.atual;
-    app.parcelados.forEach(ct=>{ for(let i=0;i<ct.qtd_parcelas;i++){ const d=new Date(ct.data_ini); d.setMonth(d.getMonth()+i); const venc=new Date(d.getFullYear(), d.getMonth(), ct.venc_dia); const mk=venc.toISOString().slice(0,7); if(mk===m) parcMes += +ct.valor_parcela; } });
+    (app.parcelados||[]).forEach(ct=>{ for(let i=0;i<ct.qtd_parcelas;i++){ const d=new Date(ct.data_ini); d.setMonth(d.getMonth()+i); const venc=new Date(d.getFullYear(), d.getMonth(), ct.venc_dia); const mk=venc.toISOString().slice(0,7); if(mk===m) parcMes += +ct.valor_parcela; } });
     return {fix,varv,inv,rec,parcMes, saldo:(rec-(fix+varv+parcMes+inv))};
   }
   function renderDashboard(){
     const r=calcResumo();
-    document.getElementById('kSaldo').textContent=brl(r.saldo);
-    document.getElementById('kDesp').textContent =brl(r.fix+r.varv+r.parcMes+r.inv);
-    document.getElementById('kRec').textContent  =brl(r.rec);
-    document.getElementById('kParc').textContent =brl(r.parcMes);
-    const tbl=document.getElementById('tblResumo');
-    tbl.innerHTML = `<tr><th>Grupo</th><th>Total</th></tr>
+    kSaldo.textContent=brl(r.saldo); kDesp.textContent=brl(r.fix+r.varv+r.parcMes+r.inv); kRec.textContent=brl(r.rec); kParc.textContent=brl(r.parcMes);
+    tblResumo.innerHTML = `<tr><th>Grupo</th><th>Total</th></tr>
     <tr><td>Fixos</td><td>${brl(r.fix)}</td></tr>
     <tr><td>Variáveis</td><td>${brl(r.varv)}</td></tr>
     <tr><td>Parcelados (mês)</td><td>${brl(r.parcMes)}</td></tr>
@@ -464,62 +371,42 @@ function initAppUI(){
     <tr><td><b>Saldo</b></td><td><b>${brl(r.saldo)}</b></td></tr>`;
     renderCalendar();
   }
-  window.renderDashboard = renderDashboard;
-
-  // calendar
   function renderCalendar(){
     const base=new Date(app.atual+'-01T00:00:00'); const start=new Date(base.getFullYear(),base.getMonth(),1); const end=new Date(base.getFullYear(),base.getMonth()+1,0); const pad=(start.getDay()+6)%7;
     const cells=[]; for(let i=0;i<pad;i++) cells.push('<div></div>');
     for(let d=1; d<=end.getDate(); d++){ const k=app.atual+'-'+String(d).padStart(2,'0'); const list=app.diario[k]||[]; const gDesp=list.filter(x=>x.tipo!=='receitas' && x.tipo!=='invest').reduce((a,b)=>a+b.valor,0); const gRec=list.filter(x=>x.tipo==='receitas').reduce((a,b)=>a+b.valor,0);
       cells.push(`<div class="cell" data-day="${k}"><div class="day">${d}</div>${gDesp?`<span class="tag exp">- ${brl(gDesp)}</span>`:''}${gRec?` <span class="tag inc">+ ${brl(gRec)}</span>`:''}</div>`);
     }
-    const el=document.getElementById('cal'); el.innerHTML=cells.join('');
+    cal.innerHTML=cells.join('');
   }
-  window.renderCalendar = renderCalendar;
-
-  // demo
   function group(list){ return list.reduce((acc,x)=>{ const k=(x.categoria||'—')+' / '+(x.subcategoria||'—'); acc[k]=(acc[k]||0)+x.valor; return acc; },{}); }
   function tableFromGroup(g){ const rows=Object.entries(g).map(([k,v])=>`<tr><td>${k}</td><td>${brl(v)}</td></tr>`).join(''); return `<tr><th>Categoria / Sub</th><th>Total</th></tr>${rows||''}`; }
   function renderDemo(){
     const arr=app.meses[app.atual]||[];
-    document.getElementById('dFixas').innerHTML = tableFromGroup(group(arr.filter(x=>x.tipo==='fixas')));
-    document.getElementById('dVars').innerHTML  = tableFromGroup(group(arr.filter(x=>x.tipo==='variaveis')));
-    document.getElementById('dInv').innerHTML   = tableFromGroup(group(arr.filter(x=>x.tipo==='invest')));
-    document.getElementById('dRec').innerHTML   = tableFromGroup(group(arr.filter(x=>x.tipo==='receitas')));
-    const r=calcResumo(); document.getElementById('dParc').innerHTML = `<tr><th>Parcela do mês</th><th>Total</th></tr><tr><td>Somatório</td><td>${brl(r.parcMes)}</td></tr>`;
+    dFixas.innerHTML=tableFromGroup(group(arr.filter(x=>x.tipo==='fixas')));
+    dVars.innerHTML =tableFromGroup(group(arr.filter(x=>x.tipo==='variaveis')));
+    dInv.innerHTML  =tableFromGroup(group(arr.filter(x=>x.tipo==='invest')));
+    dRec.innerHTML  =tableFromGroup(group(arr.filter(x=>x.tipo==='receitas')));
+    const r=calcResumo(); dParc.innerHTML = `<tr><th>Parcela do mês</th><th>Total</th></tr><tr><td>Somatório</td><td>${brl(r.parcMes)}</td></tr>`;
   }
-  window.renderDemo = renderDemo;
-
-  // charts
   let pie=null,line=null;
   function renderCharts(){
     const arr=app.meses[app.atual]||[]; const somaPorCat={}; arr.filter(x=>x.tipo!=='receitas' && x.tipo!=='invest').forEach(x=>{ somaPorCat[x.categoria]=(somaPorCat[x.categoria]||0)+x.valor; });
-    const pctx=document.getElementById('pie').getContext('2d'); if(pie) pie.destroy(); pie=new Chart(pctx,{type:'pie',data:{labels:Object.keys(somaPorCat),datasets:[{data:Object.values(somaPorCat)}]}});
-    // diário
-    const days=[], dDesp=[], dRec=[]; const base=new Date(app.atual+'-01T00:00:00'); const end=new Date(base.getFullYear(),base.getMonth()+1,0);
-    for(let d=1; d<=end.getDate(); d++){ const k=app.atual+'-'+String(d).padStart(2,'0'); days.push(d); const list=app.diario[k]||[]; dDesp.push(list.filter(x=>x.tipo!=='receitas').reduce((a,b)=>a+b.valor,0)); dRec.push(list.filter(x=>x.tipo==='receitas').reduce((a,b)=>a+b.valor,0)); }
-    const lctx=document.getElementById('line').getContext('2d'); if(line) line.destroy(); line=new Chart(lctx,{type:'line',data:{labels:days,datasets:[{label:'Despesas',data:dDesp},{label:'Receitas',data:dRec}]}});
+    if(pie) pie.destroy(); pie=new Chart(document.getElementById('pie').getContext('2d'), {type:'pie',data:{labels:Object.keys(somaPorCat),datasets:[{data:Object.values(somaPorCat)}]}});
+    const days=[], dDesp=[], dRec=[]; const b=new Date(app.atual+'-01T00:00:00'); const e=new Date(b.getFullYear(),b.getMonth()+1,0);
+    for(let d=1; d<=e.getDate(); d++){ const k=app.atual+'-'+String(d).padStart(2,'0'); days.push(d); const list=app.diario[k]||[]; dDesp.push(list.filter(x=>x.tipo!=='receitas').reduce((a,b)=>a+b.valor,0)); dRec.push(list.filter(x=>x.tipo==='receitas').reduce((a,b)=>a+b.valor,0)); }
+    if(line) line.destroy(); line=new Chart(document.getElementById('line').getContext('2d'), {type:'line',data:{labels:days,datasets:[{label:'Despesas',data:dDesp},{label:'Receitas',data:dRec}]}});
   }
-  window.renderCharts = renderCharts;
 
-  // save categorias
-  document.getElementById('btnSaveCfg').onclick = ()=>{
-    app.cfg.categorias.despesas = document.getElementById('taDespesas').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    app.cfg.subcats.despesas     = document.getElementById('taSubDespesas').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    app.cfg.categorias.investimentos = document.getElementById('taInv').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    app.cfg.categorias.receitas = document.getElementById('taRec').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    saveLocal(); alert('Categorias salvas.');
-  };
+  function renderList(){
+    const list=app.meses[app.atual]||[];
+    tblItens.innerHTML = `<tr><th>Tipo</th><th>Categoria</th><th>Subcategoria</th><th>Valor</th><th></th></tr>` + list.map((x,i)=>`<tr><td><span class="badge">${x.tipo}</span></td><td>${x.categoria||''}</td><td>${x.subcategoria||''}</td><td>${brl(x.valor)}</td><td><button class="btn" data-del="${i}">Excluir</button></td></tr>`).join('');
+    tblItens.querySelectorAll('button[data-del]').forEach(b=> b.onclick=()=>{ const idx=+b.dataset.del; (app.meses[app.atual]||[]).splice(idx,1); saveLocal(); renderAll(); });
+  }
+  function renderAll(){ renderList(); renderDashboard(); renderDemo(); renderCharts(); }
 
-  // logout
-  document.getElementById('btnLogout').onclick = async ()=>{ await sp.client.auth.signOut(); sp.session=null; showGate(); showStep('stepAuth'); setCloudPill('conectado (sem login)'); };
-  document.getElementById('accLogout').onclick = ()=> document.getElementById('btnLogout').click();
-
-  // render init
-  renderLista(); renderDashboard(); renderDemo(); renderCharts();
+  renderAll();
 }
-
-/* ===== start ===== */
 spInit();
 </script>
 </body>
